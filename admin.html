@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SENA성공 관리자</title>
+
+<style>
+body{
+    font-family:Arial,sans-serif;
+    background:#f4f4f4;
+    padding:20px;
+}
+
+.card{
+    background:white;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:15px;
+}
+
+input, textarea{
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+    margin-bottom:10px;
+    box-sizing:border-box;
+}
+
+button{
+    padding:10px;
+    cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<h1>⚙ SENA성공 관리자</h1>
+
+<!-- 캐릭터 -->
+<div class="card">
+<h3>캐릭터 추가</h3>
+
+<input id="characterName" placeholder="캐릭터 이름">
+
+
+<button onclick="addCharacter()">캐릭터 추가</button>
+
+<h4>현재 캐릭터</h4>
+<div id="characterList"></div>
+</div>
+
+<!-- 공략 -->
+<div class="card">
+<h3>공략 추가</h3>
+
+<div style="position:relative;">
+
+<input
+id="enemy1"
+placeholder="상대 1"
+autocomplete="off"
+oninput="searchHero(this,'enemy1Result')">
+
+<div
+id="enemy1Result"
+style="
+position:absolute;
+left:0;
+right:0;
+background:white;
+border:1px solid #ccc;
+max-height:180px;
+overflow:auto;
+z-index:999;
+display:none;
+">
+</div>
+
+</div>
+
+<div style="position:relative;">
+
+<input
+id="enemy2"
+placeholder="상대 2"
+autocomplete="off"
+oninput="searchHero(this,'enemy2Result')">
+
+<div
+id="enemy2Result"
+style="
+position:absolute;
+left:0;
+right:0;
+background:white;
+border:1px solid #ccc;
+max-height:180px;
+overflow:auto;
+z-index:999;
+display:none;
+">
+</div>
+
+</div>
+
+<div style="position:relative;">
+
+<input
+id="enemy3"
+placeholder="상대 3"
+autocomplete="off"
+oninput="searchHero(this,'enemy3Result')">
+
+<div
+id="enemy3Result"
+style="
+position:absolute;
+left:0;
+right:0;
+background:white;
+border:1px solid #ccc;
+max-height:180px;
+overflow:auto;
+z-index:999;
+display:none;
+">
+</div>
+
+</div>
+
+<label>공략 캐릭터</label>
+
+<div style="position:relative;">
+
+<input
+id="hero1"
+placeholder="공략 캐릭터1"
+autocomplete="off"
+onfocus="searchHero(this,'hero1Result')"
+oninput="searchHero(this,'hero1Result');generateGuideInputs()"
+onchange="generateGuideInputs()">
+
+<div
+id="hero1Result"
+style="
+position:absolute;
+left:0;
+right:0;
+background:white;
+border:1px solid #ccc;
+max-height:180px;
+overflow:auto;
+z-index:999;
+display:none;
+">
+</div>
+
+</div>
+
+<div style="position:relative;">
+
+<input
+id="hero2"
+placeholder="공략 캐릭터2"
+autocomplete="off"
+oninput="searchHero(this,'hero2Result');generateGuideInputs()">
+
+<div
+id="hero2Result"
+style="
+position:absolute;
+left:0;
+right:0;
+background:white;
+border:1px solid #ccc;
+max-height:180px;
+overflow:auto;
+z-index:999;
+display:none;
+">
+</div>
+
+</div>
+
+<div style="position:relative;">
+
+<input
+id="hero3"
+placeholder="공략 캐릭터3"
+autocomplete="off"
+oninput="searchHero(this,'hero3Result');generateGuideInputs()">
+
+<div
+id="hero3Result"
+style="
+position:absolute;
+left:0;
+right:0;
+background:white;
+border:1px solid #ccc;
+max-height:180px;
+overflow:auto;
+z-index:999;
+display:none;
+">
+</div>
+
+</div>
+
+<textarea id="guideSpeed" placeholder="속공"></textarea>
+
+<div id="ringContainer"></div>
+
+<label>추천 펫</label>
+<input id="guidePet" placeholder="펫">
+
+<label>추천 진형</label>
+
+<select id="formationType">
+    <option value="기본진형">기본진형</option>
+    <option value="밸런스진형">밸런스진형</option>
+    <option value="공격진형">공격진형</option>
+    <option value="보호진형">보호진형</option>
+</select>
+
+<input id="frontLine" placeholder="앞줄 (예: 라드)">
+<input id="backLine" placeholder="뒷줄 (예: 오공 / 엘리시아)">
+
+<div id="itemContainer"></div>
+
+<label>스킬순서</label>
+<textarea id="guideSkills" placeholder="스킬순서"></textarea>
+
+<label>설명 및 팁</label>
+<textarea id="guideMemo" placeholder="설명 및 팁"></textarea>
+
+<button id="guideBtn" onclick="addGuide()">공략 저장</button>
+
+<div class="card">
+<h3>공략 목록</h3>
+<div id="guideList"></div>
+<div class="card">
+<h3>방어덱 목록</h3>
+<div id="defenseList"></div>
+</div>
+</div>
+<div class="card">
+
+<h3>방어덱 추가</h3>
+
+<div style="position:relative;">
+
+<input
+id="defHero1"
+placeholder="영웅 1"
+autocomplete="off"
+oninput="searchHero(this,'defHero1Result');generateDefenseInputs()">
+
+<div
+id="defHero1Result"
+style="
+position:absolute;
+left:0;
+right:0;
+background:white;
+border:1px solid #ccc;
+max-height:180px;
+overflow:auto;
+z-index:999;
+display:none;
+">
+</div>
+
+</div>
+
+<div style="position:relative;">
+
+<input
+id="defHero2"
+placeholder="영웅 2"
+autocomplete="off"
+oninput="searchHero(this,'defHero2Result');generateDefenseInputs()">
+
+<div
+id="defHero2Result"
+style="
+position:absolute;
+left:0;
+right:0;
+background:white;
+border:1px solid #ccc;
+max-height:180px;
+overflow:auto;
+z-index:999;
+display:none;
+">
+</div>
+
+</div>
+
+<div style="position:relative;">
+
+<input
+id="defHero3"
+placeholder="영웅 3"
+autocomplete="off"
+oninput="searchHero(this,'defHero3Result');generateDefenseInputs()">
+
+<div
+id="defHero3Result"
+style="
+position:absolute;
+left:0;
+right:0;
+background:white;
+border:1px solid #ccc;
+max-height:180px;
+overflow:auto;
+z-index:999;
+display:none;
+">
+</div>
+
+</div>
+
+<div id="defRingContainer"></div>
+
+<textarea id="defPet" placeholder="추천 펫"></textarea>
+
+<label>추천 진형</label>
+
+<select id="defFormationType">
+    <option>밸런스</option>
+    <option>방어</option>
+    <option>공격</option>
+    <option>신속</option>
+</select>
+
+<input
+id="defFront"
+placeholder="앞줄 (예: 칼헤론)">
+
+<input
+id="defBack"
+placeholder="뒷줄 (예: 여포 / 브브)">
+
+<textarea id="defSkills" placeholder="스킬순서"></textarea>
+
+<div id="defItemContainer"></div>
+
+<textarea id="defMemo" placeholder="설명 및 팁"></textarea>
+
+<button id="defBtn" onclick="addDefense()">
+방어덱 저장
+</button>
+
+</div>
+
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyB1mVzVlotzO_SOW8EEZkYTdMfXEQ0QxrA",
+  authDomain: "sena-success.firebaseapp.com",
+  projectId: "sena-success",
+  storageBucket: "sena-success.appspot.com",
+  messagingSenderId: "467131130722",
+  appId: "1:467131130722:web:1c72ca31d052ee55afc23b"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+let editingGuideId = null;
+
+let characterNames = [];
+
+/* =========================
+   캐릭터
+========================= */
+
+async function addCharacter(){
+
+    const name = document.getElementById("characterName").value.trim();
+
+    if(!name) return;
+
+    await db.collection("characters").add({
+        name: name
+    });
+
+    alert("캐릭터 추가 완료");
+
+    document.getElementById("characterName").value = "";
+
+    loadCharacters();
+}
+
+async function loadCharacters(){
+
+    const snap = await db.collection("characters").get();
+
+    let docs = snap.docs;
+
+    docs.sort((a,b)=>
+        a.data().name.localeCompare(b.data().name,'ko')
+    );
+
+    characterNames = docs.map(doc=>doc.data().name);
+
+    let html = "";
+
+    docs.forEach(doc=>{
+
+        const c = doc.data();
+
+        html += `
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:5px 0;padding:10px;background:#eee;border-radius:8px;">
+
+            <div style="display:flex;align-items:center;gap:10px;">
+
+                <span>${c.name}</span>
+
+                <button onclick="deleteCharacter('${doc.id}')">
+삭제
+</button>
+
+            </div>
+
+        </div>
+        `;
+
+    });
+
+    document.getElementById("characterList").innerHTML = html;
+
+   
+
+}
+
+async function deleteCharacter(id){
+
+    if(!confirm("캐릭터를 삭제할까요?")) return;
+
+    await db.collection("characters").doc(id).delete();
+
+    alert("캐릭터 삭제 완료");
+
+    loadCharacters();
+}
+/* =========================
+   공략
+========================= */
+
+async function addGuide(){
+
+    const heroes = [
+        document.getElementById("hero1").value,
+        document.getElementById("hero2").value,
+        document.getElementById("hero3").value
+    ].filter(v => v);
+
+    // 반지
+    const ring = {};
+
+    document.querySelectorAll(".ring-input").forEach(input=>{
+        ring[input.dataset.hero] = input.value;
+    });
+
+    // 장비
+    const items = {};
+
+    heroes.forEach(hero=>{
+
+        const set = document.querySelector(`.set-input[data-hero="${hero}"]`)?.value || "";
+        const option = document.querySelector(`.option-input[data-hero="${hero}"]`)?.value || "";
+
+        items[hero] = {
+            set:set,
+            option:option
+        };
+
+    });
+
+    const guide = {
+
+        enemy:[
+            document.getElementById("enemy1").value,
+            document.getElementById("enemy2").value,
+            document.getElementById("enemy3").value
+        ],
+
+        heroes:heroes,
+
+        title:heroes.join(" / "),
+
+        speed:document.getElementById("guideSpeed").value,
+
+        ring:ring,
+
+        pet:document.getElementById("guidePet").value,
+
+        formation:{
+            type:document.getElementById("formationType").value,
+            front:document.getElementById("frontLine").value,
+            back:document.getElementById("backLine").value
+        },
+
+        skills:document.getElementById("guideSkills").value,
+
+        items:items,
+
+        memo:document.getElementById("guideMemo").value
+
+    };
+
+    if(editingGuideId){
+
+        await db.collection("guides")
+            .doc(editingGuideId)
+            .update(guide);
+
+        alert("공략 수정 완료");
+
+        editingGuideId = null;
+        document.getElementById("guideBtn").innerText = "공략 저장";
+
+    }else{
+
+        await db.collection("guides").add(guide);
+
+        alert("공략 저장 완료");
+
+    }
+
+    loadGuides();
+
+}
+
+function generateGuideInputs(){
+
+    const heroes = [
+        document.getElementById("hero1").value,
+        document.getElementById("hero2").value,
+        document.getElementById("hero3").value
+    ].filter(v=>v);
+
+    // 반지
+    let ringHtml = "<label>추천 반지</label>";
+
+    heroes.forEach(hero=>{
+
+        ringHtml += `
+        <div style="display:flex;align-items:center;margin-bottom:8px;gap:10px;">
+            <div style="width:90px;font-weight:bold;">
+                ${hero}
+            </div>
+
+            <input
+                class="ring-input"
+                data-hero="${hero}"
+                placeholder="반지 입력"
+                style="flex:1;">
+        </div>
+        `;
+
+    });
+
+    document.getElementById("ringContainer").innerHTML = ringHtml;
+
+    // 장비
+
+    let itemHtml = "<label>장비세팅</label>";
+
+    heroes.forEach(hero=>{
+
+        itemHtml += `
+        <div style="
+            background:#343d52;
+            padding:12px;
+            border-radius:10px;
+            margin-bottom:15px;
+        ">
+
+            <b>${hero}</b>
+
+            <input
+                class="set-input"
+                data-hero="${hero}"
+                placeholder="세트">
+
+            <input
+                class="option-input"
+                data-hero="${hero}"
+                placeholder="옵션">
+
+        </div>
+        `;
+
+    });
+
+    document.getElementById("itemContainer").innerHTML = itemHtml;
+
+}
+
+async function loadGuides(){
+
+    const snap = await db.collection("guides").get();
+
+    let html = "";
+
+    snap.forEach(doc=>{
+
+        const g = doc.data();
+
+        html += `
+<div style="
+padding:12px;
+background:#eee;
+margin-bottom:12px;
+border-radius:10px;
+">
+
+<b>${g.title}</b>
+
+<br>
+
+<small>
+상대 :
+${g.enemy ? g.enemy.join(" / ") : "-"}
+</small>
+
+<br><br>
+
+<button onclick="editGuide('${doc.id}')">
+수정
+</button>
+
+<button onclick="deleteGuide('${doc.id}')">
+삭제
+</button>
+
+</div>
+`;
+
+    });
+
+    document.getElementById("guideList").innerHTML = html;
+
+}
+
+/* =========================
+   시작
+========================= */
+
+let editingDefenseId = null;
+
+async function addDefense(){
+
+    const heroes = [
+        document.getElementById("defHero1").value,
+        document.getElementById("defHero2").value,
+        document.getElementById("defHero3").value
+    ].filter(v=>v);
+
+    const ring = {};
+
+document.querySelectorAll(".ring-input").forEach(input=>{
+
+    ring[input.dataset.hero]=input.value;
+
+});
+
+const items = {};
+
+document.querySelectorAll(".set-input").forEach(input=>{
+
+    const hero=input.dataset.hero;
+
+    if(!items[hero]) items[hero]={};
+
+    items[hero].set=input.value;
+
+});
+
+document.querySelectorAll(".option-input").forEach(input=>{
+
+    const hero=input.dataset.hero;
+
+    if(!items[hero]) items[hero]={};
+
+    items[hero].option=input.value;
+
+});
+
+const defense = {
+
+    heroes: heroes,
+
+    title: heroes.join(" / "),
+
+    ring: ring,
+
+    pet: document.getElementById("defPet").value,
+
+    formation:{
+    type:document.getElementById("defFormationType").value,
+    front:document.getElementById("defFront").value,
+    back:document.getElementById("defBack").value
+},
+
+    skills: document.getElementById("defSkills").value,
+
+    items: items,
+
+    memo: document.getElementById("defMemo").value
+
+};
+
+    if(editingDefenseId){
+
+        await db.collection("defenses")
+        .doc(editingDefenseId)
+        .update(defense);
+
+        alert("방어덱 수정 완료");
+
+        editingDefenseId = null;
+
+        document.getElementById("defBtn").innerText="방어덱 저장";
+
+    }else{
+
+        await db.collection("defenses").add(defense);
+
+        alert("방어덱 저장 완료");
+
+    }
+
+    document.getElementById("defHero1").value = "";
+    document.getElementById("defHero2").value = "";
+    document.getElementById("defHero3").value = "";
+
+    document.getElementById("defRing").value = "";
+    document.getElementById("defFormationType").selectedIndex=0;
+    document.getElementById("defFront").value="";
+    document.getElementById("defBack").value="";
+    document.getElementById("defPet").value = "";
+    document.getElementById("defSkills").value = "";
+    document.getElementById("defItems").value = "";
+    document.getElementById("defMemo").value = "";
+
+    loadDefenses();
+
+}
+
+async function loadDefenses(){
+
+    const snap = await db.collection("defenses").get();
+
+    let html = "";
+
+    snap.forEach(doc=>{
+
+        const d = doc.data();
+
+        html += `
+        <div style="
+        background:#eee;
+        padding:10px;
+        margin-bottom:10px;
+        border-radius:8px;
+        ">
+
+            <b>
+            ${(d.heroes || []).join(" / ")}
+            </b>
+
+            <br><br>
+
+            <button onclick="editDefense('${doc.id}')">
+수정
+</button>
+
+<button onclick="deleteDefense('${doc.id}')">
+삭제
+</button>
+
+        </div>
+        `;
+    });
+
+    document.getElementById("defenseList").innerHTML = html;
+}
+
+async function editGuide(id){
+
+    const doc = await db.collection("guides").doc(id).get();
+
+    const g = doc.data();
+
+    editingGuideId = id;
+
+    document.getElementById("enemy1").value = g.enemy?.[0] || "";
+    document.getElementById("enemy2").value = g.enemy?.[1] || "";
+    document.getElementById("enemy3").value = g.enemy?.[2] || "";
+
+    // 영웅
+    if(g.heroes){
+        document.getElementById("hero1").value = g.heroes[0] || "";
+        document.getElementById("hero2").value = g.heroes[1] || "";
+        document.getElementById("hero3").value = g.heroes[2] || "";
+    }else{
+        const heroes = (g.title || "").split(" / ");
+
+        document.getElementById("hero1").value = heroes[0] || "";
+        document.getElementById("hero2").value = heroes[1] || "";
+        document.getElementById("hero3").value = heroes[2] || "";
+    }
+
+    // 자동 입력칸 생성
+    generateGuideInputs();
+
+    // 반지
+    if(g.ring){
+
+        document.querySelectorAll(".ring-input").forEach(input=>{
+
+            input.value = g.ring[input.dataset.hero] || "";
+
+        });
+
+    }
+
+    // 장비
+    if(g.items){
+
+        Object.keys(g.items).forEach(hero=>{
+
+            const setInput =
+                document.querySelector(`.set-input[data-hero="${hero}"]`);
+
+            const optionInput =
+                document.querySelector(`.option-input[data-hero="${hero}"]`);
+
+            if(setInput)
+                setInput.value = g.items[hero].set || "";
+
+            if(optionInput)
+                optionInput.value = g.items[hero].option || "";
+
+        });
+
+    }
+
+    // 펫
+    document.getElementById("guidePet").value = g.pet || "";
+
+    // 진형
+    if(g.formation){
+
+        document.getElementById("formationType").value =
+            g.formation.type || "기본진형";
+
+        document.getElementById("frontLine").value =
+            g.formation.front || "";
+
+        document.getElementById("backLine").value =
+            g.formation.back || "";
+
+    }
+
+    document.getElementById("guideSpeed").value = g.speed || "";
+
+    document.getElementById("guideSkills").value =
+        Array.isArray(g.skills)
+            ? g.skills.join("\n")
+            : (g.skills || "");
+
+    document.getElementById("guideMemo").value =
+        g.memo || "";
+
+    document.getElementById("guideBtn").innerText =
+        "공략 수정 저장";
+
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
+
+}
+
+async function deleteGuide(id){
+
+    if(!confirm("공략을 삭제할까요?")) return;
+
+    await db.collection("guides").doc(id).delete();
+
+    alert("공략 삭제 완료");
+
+    loadGuides();
+}
+
+async function editDefense(id){
+
+    const doc = await db.collection("defenses").doc(id).get();
+
+    const d = doc.data();
+
+    editingDefenseId = id;
+
+    document.getElementById("defHero1").value = d.heroes?.[0] || "";
+    document.getElementById("defHero2").value = d.heroes?.[1] || "";
+    document.getElementById("defHero3").value = d.heroes?.[2] || "";
+
+    generateDefenseInputs();
+
+    // 반지 복원
+    if(typeof d.ring === "object" && d.ring){
+
+        document.querySelectorAll(".ring-input").forEach(input=>{
+
+            input.value = d.ring[input.dataset.hero] || "";
+
+        });
+
+    }
+
+    // 장비 복원
+    if(typeof d.items === "object" && d.items){
+
+        document.querySelectorAll(".set-input").forEach(input=>{
+
+            input.value = d.items[input.dataset.hero]?.set || "";
+
+        });
+
+        document.querySelectorAll(".option-input").forEach(input=>{
+
+            input.value = d.items[input.dataset.hero]?.option || "";
+
+        });
+
+    }
+
+    document.getElementById("defPet").value = d.pet || "";
+
+    // 진형 복원
+    if(typeof d.formation === "object" && d.formation){
+
+        document.getElementById("defFormationType").value =
+            d.formation.type || "밸런스";
+
+        document.getElementById("defFront").value =
+            d.formation.front || "";
+
+        document.getElementById("defBack").value =
+            d.formation.back || "";
+
+    }
+
+    document.getElementById("defSkills").value =
+        Array.isArray(d.skills)
+            ? d.skills.join("\n")
+            : (d.skills || "");
+
+    document.getElementById("defMemo").value =
+        d.memo || "";
+
+    document.getElementById("defBtn").innerText =
+        "방어덱 수정 저장";
+
+    window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: "smooth"
+    });
+
+}
+
+async function deleteDefense(id){
+
+    if(!confirm("삭제할까요?")) return;
+
+    await db.collection("defenses").doc(id).delete();
+
+    alert("삭제 완료");
+
+    loadDefenses();
+}
+
+
+
+let selectedIndex = -1;
+
+function searchHero(input,resultId){
+
+    const box = document.getElementById(resultId);
+
+    const keyword = input.value.trim();
+
+    if(keyword===""){
+
+        box.style.display="none";
+        return;
+
+    }
+
+   let result;
+
+if(input.id.startsWith("hero")){
+
+    const used = ["hero1","hero2","hero3"]
+        .filter(id => id !== input.id)
+        .map(id => document.getElementById(id).value)
+        .filter(v => v);
+
+    result = characterNames.filter(name =>
+        name.startsWith(keyword) &&
+        !used.includes(name)
+    );
+
+}else{
+
+    // 상대 입력은 중복 허용
+    result = characterNames.filter(name =>
+        name.startsWith(keyword)
+    );
+
+}
+
+    selectedIndex = -1;
+
+    box.innerHTML = "";
+
+    result.forEach((name,index)=>{
+
+        box.innerHTML += `
+        <div
+        class="hero-option"
+        data-index="${index}"
+        onclick="
+    document.getElementById('${input.id}').value='${name}';
+    document.getElementById('${resultId}').style.display='none';
+
+    if('${input.id}'.startsWith('hero')){
+        generateGuideInputs();
+    }
+"
+        style="
+        padding:8px 10px;
+        cursor:pointer;
+        border-bottom:1px solid #eee;
+        ">
+        ${name}
+        </div>
+        `;
+
+    });
+
+    box.style.display = result.length ? "block" : "none";
+
+    input.onkeydown=function(e){
+
+        const items = box.querySelectorAll(".hero-option");
+
+        if(!items.length) return;
+
+        if(e.key==="ArrowDown"){
+
+            e.preventDefault();
+
+            selectedIndex++;
+
+            if(selectedIndex>=items.length)
+                selectedIndex=0;
+
+            refresh();
+
+        }
+
+        if(e.key==="ArrowUp"){
+
+            e.preventDefault();
+
+            selectedIndex--;
+
+            if(selectedIndex<0)
+                selectedIndex=items.length-1;
+
+            refresh();
+
+        }
+
+        if(e.key==="Enter"){
+
+            if(selectedIndex>=0){
+
+                e.preventDefault();
+
+                items[selectedIndex].click();
+
+            }
+
+        }
+
+        if(e.key==="Escape"){
+
+            box.style.display="none";
+
+        }
+
+        function refresh(){
+
+            items.forEach(item=>{
+
+                item.style.background="white";
+                item.style.color="black";
+
+            });
+
+            items[selectedIndex].style.background="#4f7cff";
+            items[selectedIndex].style.color="white";
+
+            items[selectedIndex].scrollIntoView({
+                block:"nearest"
+            });
+
+        }
+
+    };
+
+}
+
+
+function generateDefenseInputs(){
+
+    const heroes = [
+        document.getElementById("defHero1").value,
+        document.getElementById("defHero2").value,
+        document.getElementById("defHero3").value
+    ].filter(v=>v);
+
+    // 반지
+    let ringHtml = "<label>추천 반지</label>";
+
+    heroes.forEach(hero=>{
+
+        ringHtml += `
+        <div style="display:flex;align-items:center;margin-bottom:8px;gap:10px;">
+
+            <div style="width:90px;font-weight:bold;">
+                ${hero}
+            </div>
+
+            <input
+                class="ring-input"
+                data-hero="${hero}"
+                placeholder="반지 입력"
+                style="flex:1;">
+
+        </div>
+        `;
+
+    });
+
+    document.getElementById("defRingContainer").innerHTML = ringHtml;
+
+
+    // 장비
+    let itemHtml = "<label>장비세팅</label>";
+
+    heroes.forEach(hero=>{
+
+        itemHtml += `
+        <div style="
+            background:#343d52;
+            padding:12px;
+            border-radius:10px;
+            margin-bottom:15px;
+        ">
+
+            <b>${hero}</b>
+
+            <input
+                class="set-input"
+                data-hero="${hero}"
+                placeholder="세트">
+
+            <input
+                class="option-input"
+                data-hero="${hero}"
+                placeholder="옵션">
+
+        </div>
+        `;
+
+    });
+
+    document.getElementById("defItemContainer").innerHTML = itemHtml;
+
+}
+
+
+
+loadCharacters();
+loadGuides();
+loadDefenses();
+
+console.log("관리자 페이지 정상 실행");
+</script>
+
+</body>
+</html>

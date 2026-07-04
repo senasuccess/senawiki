@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SENA성공 공격덱</title>
+<link rel="manifest" href="manifest.json">
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#1f2430;
+    color:white;
+    margin:0;
+    padding:20px;
+}
+
+h1{
+    text-align:center;
+}
+
+.back{
+    margin-bottom:20px;
+}
+
+.card{
+    background:#2b3245;
+    padding:15px;
+    border-radius:15px;
+    margin-bottom:15px;
+    border:1px solid #3c4458;
+}
+
+.characters{
+    display:flex;
+    flex-direction:column;
+}
+
+.character-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:15px;
+}
+
+.search-box{
+    width:100%;
+    padding:12px;
+    margin-bottom:15px;
+    border:none;
+    border-radius:10px;
+    background:#343d52;
+    color:white;
+    box-sizing:border-box;
+    font-size:15px;
+    outline:none;
+}
+
+.character-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:15px;
+}
+
+.character-card{
+    background:#343d52;
+    border-radius:12px;
+    padding:15px;
+    text-align:center;
+    cursor:pointer;
+    transition:0.2s;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    min-height:55px;
+    font-weight:bold;
+}
+
+.character-card:hover{
+    transform:scale(1.05);
+    border:1px solid #4f7cff;
+}
+
+
+
+.selected-card{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    border:2px solid #4f7cff;
+    border-radius:10px;
+    padding:10px;
+    margin-bottom:10px;
+    background:white;
+    color:black;
+}
+
+.info-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin-bottom:8px;
+}
+.info-box{
+    background:#343d52;
+    border-radius:12px;
+    padding:8px 10px;
+    border:1px solid #4b556e;
+}
+.info-title{
+    font-size:14px;
+    font-weight:bold;
+    color:#7fb3ff;
+    margin-bottom:4px;
+}
+
+.big-box{
+    background:#343d52;
+    border-radius:12px;
+    padding:10px 12px;
+    border:1px solid #4b556e;
+    margin-bottom:10px;
+}
+
+.big-title{
+    font-size:15px;
+    font-weight:bold;
+    color:#7fb3ff;
+    margin-bottom:6px;
+}
+
+.big-content{
+    white-space:pre-wrap;
+    line-height:1.3;
+    margin:0;
+}
+
+.info-table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:8px;
+}
+
+.info-table td{
+    padding:3px 6px;
+    line-height:1.2;
+    border-bottom:1px solid #3c4458;
+    vertical-align:middle;
+}
+
+.info-table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:2px;
+}
+
+.info-table tr:last-child td{
+    border-bottom:none;
+}
+.info-table td:first-child{
+    width:80px;
+    font-weight:bold;
+    color:#6ea8ff;
+    white-space:nowrap;
+}
+
+.info-table td:nth-child(2){
+    width:170px;
+    white-space:nowrap;
+    text-align:left;
+}
+
+.info-table td:last-child{
+    width:180px;
+    white-space:nowrap;
+    text-align:left;
+}
+</style>
+</head>
+
+<body>
+
+<button class="back" onclick="location.href='index.html'">← 메인으로</button>
+
+<h1>⚔ SENA성공 공격덱</h1>
+
+<div class="card">
+<h3>선택된 방어덱</h3>
+<div id="selected">선택된 캐릭터 없음</div>
+</div>
+
+<div class="card">
+
+<h3>캐릭터 목록</h3>
+
+<input
+id="heroSearch"
+class="search-box"
+type="text"
+placeholder="🔍 캐릭터 검색...">
+
+<div
+class="characters"
+id="characterList">
+
+</div>
+
+</div>
+
+<div class="card">
+<h3>카운터덱 결과</h3>
+<div id="result">아직 선택 없음</div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyB1mVzVlotzO_SOW8EEZkYTdMfXEQ0QxrA",
+  authDomain: "sena-success.firebaseapp.com",
+  projectId: "sena-success",
+  storageBucket: "sena-success.appspot.com",
+  messagingSenderId: "467131130722",
+  appId: "1:467131130722:web:1c72ca31d052ee55afc23b"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+let characters = [];
+let guides = [];
+let selected = [];
+
+/* =========================
+   실시간 데이터 (2단계 핵심)
+========================= */
+
+function loadCharacters(){
+    db.collection("characters")
+    .onSnapshot(snap=>{
+        characters = snap.docs.map(d=>d.data().name);
+        renderCharacters();
+    });
+}
+
+function loadGuides(){
+    db.collection("guides")
+    .onSnapshot(snap=>{
+        guides = snap.docs.map(d=>d.data());
+
+        // 앱 느낌용 정렬
+        guides.sort((a,b)=>
+            (a.title||"").localeCompare(b.title||"ko")
+        );
+    });
+}
+
+/* =========================
+   캐릭터 렌더
+========================= */
+
+let searchKeyword = "";
+
+function renderCharacters(){
+
+    const box = document.getElementById("characterList");
+
+    let html = '<div class="character-grid">';
+
+    characters.forEach(name=>{
+
+        html += `
+        <div
+        class="character-card"
+        data-name="${name}"
+        onclick="selectChar('${name}')">
+
+            <div>${name}</div>
+
+        </div>
+        `;
+
+    });
+
+    html += "</div>";
+
+    box.innerHTML = html;
+
+}
+
+
+/* =========================
+   선택
+========================= */
+
+function selectChar(name){
+
+    if(selected.includes(name)) return;
+
+    if(selected.length >= 3){
+        alert("3명까지 선택 가능");
+        return;
+    }
+
+    selected.push(name);
+    renderSelected();
+
+    document.getElementById("result").innerHTML = "검색 중...";
+
+    setTimeout(()=>{
+        if(selected.length === 3){
+            searchGuide();
+        }
+    },200);
+
+    document.getElementById("heroSearch").value = "";
+
+document.querySelectorAll(".character-card").forEach(card=>{
+
+    card.style.display="flex";
+
+});
+}
+
+function removeChar(name){
+    selected = selected.filter(c=>c!==name);
+    renderSelected();
+}
+
+function renderSelected(){
+
+    const box = document.getElementById("selected");
+
+    if(selected.length === 0){
+        box.innerHTML = "선택된 캐릭터 없음";
+        return;
+    }
+
+    box.innerHTML = "";
+
+    selected.forEach(name=>{
+        box.innerHTML += `
+        <div class="selected-card">
+            <img src="images/${name}.jpg"
+                 style="width:50px;height:50px;border-radius:8px"
+                 onerror="this.style.display='none'">
+            <span>${name}</span>
+            <button onclick="removeChar('${name}')">❌</button>
+        </div>`;
+    });
+}
+
+/* =========================
+   검색
+========================= */
+
+function searchGuide(){
+
+    const target = [...selected].sort();
+
+    const result = guides.filter(g=>{
+        return JSON.stringify([...g.enemy].sort())
+        === JSON.stringify(target);
+    });
+
+    const box = document.getElementById("result");
+
+    if(result.length === 0){
+        box.innerHTML = "등록된 공략 없음";
+        return;
+    }
+
+    box.innerHTML = "";
+
+    result.forEach(g=>{
+        box.innerHTML += `
+        <div style="
+            background:#4f7cff;
+            padding:15px;
+            border-radius:12px;
+            margin-bottom:10px;
+            text-align:center;
+            font-weight:bold;
+            cursor:pointer;
+        " onclick='showGuide(${JSON.stringify(g)})'>
+            ⚔ ${g.title}
+        </div>`;
+    });
+}
+
+/* =========================
+   상세보기
+========================= */
+
+function showGuide(g){
+
+    // 반지
+    let ringText = "-";
+
+    if(typeof g.ring === "object" && g.ring){
+
+        ringText = `
+        <table class="info-table">
+        ${Object.entries(g.ring).map(([hero,ring])=>`
+            <tr>
+                <td>${hero}</td>
+                <td colspan="2">${ring}</td>
+            </tr>
+        `).join("")}
+        </table>
+        `;
+
+    }else{
+
+        ringText = g.ring || "-";
+
+    }
+
+    // 장비
+let itemText = "-";
+
+if(typeof g.items === "object" && g.items){
+
+    itemText = `
+    <table class="info-table">
+    ${Object.entries(g.items).map(([hero,data])=>`
+        <tr>
+            <td>${hero}</td>
+            <td>${(data.set || "").replaceAll(",", " / ")}</td>
+            <td>${(data.option || "").replaceAll(",", " / ")}</td>
+        </tr>
+    `).join("")}
+    </table>
+    `;
+
+}else{
+
+    itemText = g.items || "-";
+
+}
+
+    // 진형
+    let formationText = "-";
+
+    if(typeof g.formation === "object" && g.formation){
+
+       formationText = `
+<table class="info-table">
+
+<tr>
+    <td>진형</td>
+    <td colspan="2">${g.formation.type}</td>
+</tr>
+
+<tr>
+    <td>앞줄</td>
+    <td colspan="2">${g.formation.front}</td>
+</tr>
+
+<tr>
+    <td>뒷줄</td>
+    <td colspan="2">${g.formation.back}</td>
+</tr>
+
+</table>
+`;
+
+    }else{
+
+        formationText = g.formation || "-";
+
+    }
+
+    document.getElementById("result").innerHTML = `
+    <div style="background:#2b3245;padding:18px;border-radius:16px">
+
+        <h2 style="margin-top:0;margin-bottom:18px;">
+            ⚔ ${g.title}
+        </h2>
+
+        <div class="info-grid">
+
+            <div class="info-box">
+                <div class="info-title">🏃 속공</div>
+                ${g.speed || "-"}
+            </div>
+
+            <div class="info-box">
+                <div class="info-title">🐻 펫</div>
+                <div class="big-content">${g.pet || "-"}</div>
+            </div>
+
+        </div>
+
+        <div class="info-grid">
+
+            <div class="info-box">
+                <div class="info-title">💍 반지</div>
+                <div class="big-content">${ringText}</div>
+            </div>
+
+            <div class="info-box">
+                <div class="info-title">🛡 진형</div>
+                <div class="big-content">${formationText}</div>
+            </div>
+
+        </div>
+
+        <div class="big-box">
+            <div class="big-title">🔥 스킬순서</div>
+            <div class="big-content">${g.skills || "-"}</div>
+        </div>
+
+        <div class="big-box">
+            <div class="big-title">⚔ 장비세팅</div>
+            <div class="big-content">${itemText}</div>
+        </div>
+
+        <div class="big-box">
+            <div class="big-title">📝 설명 및 팁</div>
+            <div class="big-content">${g.memo || "-"}</div>
+        </div>
+
+        <button onclick="searchGuide()" style="
+            width:100%;
+            padding:12px;
+            background:#4f7cff;
+            border:none;
+            border-radius:12px;
+            color:white;
+            font-weight:bold;
+        ">
+            ← 목록
+        </button>
+
+    </div>`;
+}
+
+/* =========================
+   시작
+========================= */
+
+loadCharacters();
+document.addEventListener("DOMContentLoaded",()=>{
+
+    const input = document.getElementById("heroSearch");
+
+    input.addEventListener("input",function(){
+
+        const keyword = this.value.toLowerCase();
+
+        document.querySelectorAll(".character-card").forEach(card=>{
+
+            const name = card.dataset.name.toLowerCase();
+
+            card.style.display =
+                name.includes(keyword)
+                ? "flex"
+                : "none";
+
+        });
+
+    });
+
+});
+
+loadGuides();
+
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js");
+}
+
+</script>
+</body>
+</html>
