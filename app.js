@@ -17,10 +17,12 @@ function a(){
 
     if(b === z(x)){
 
-        document.getElementById("loginPage").style.display = "none";
-        document.getElementById("menuPage").style.display = "block";
+    localStorage.setItem("senaLogin","true");
 
-    }else{
+    document.getElementById("loginPage").style.display = "none";
+    document.getElementById("menuPage").style.display = "block";
+
+}else{
 
         alert("코드가 틀렸습니다.");
 

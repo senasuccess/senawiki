@@ -182,7 +182,17 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 </script>
 
-<script src="app.min.js"></script>
+<script src="app.js"></script>
+<script>
+
+if(localStorage.getItem("senaLogin") === "true"){
+
+    document.getElementById("loginPage").style.display = "none";
+    document.getElementById("menuPage").style.display = "block";
+
+}
+
+</script>
 
 <script>
 if ("serviceWorker" in navigator) {

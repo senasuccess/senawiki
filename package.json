@@ -1,0 +1,17 @@
+{
+  "name": "sena9820",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+  "build": "node build.js"
+},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "javascript-obfuscator": "^5.4.3",
+    "terser": "^5.48.0"
+  }
+}

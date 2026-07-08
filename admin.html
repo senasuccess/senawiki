@@ -182,7 +182,12 @@ select{
 
 <!-- 캐릭터 -->
 <div class="card">
-<h3>캐릭터 추가</h3>
+
+<h3 onclick="toggleBox('characterBox')" style="cursor:pointer;">
+🧑 캐릭터 관리 ▼
+</h3>
+
+<div id="characterBox" style="display:none;">
 
 <input id="characterName" placeholder="캐릭터 이름">
 
@@ -190,28 +195,29 @@ select{
 <button onclick="addCharacter()">캐릭터 추가</button>
 
 
-<button onclick="convertOldGuides()">
-기존 공략 변환
-</button>
 
-<button onclick="fixMissingHeroIds()">
-빈 캐릭터ID 수정
-</button>
-<button onclick="convertOldEnemies()">
-기존 상대 변환
-</button>
-
-<button onclick="fixMissingEnemyIds()">
-빈 상대ID 수정
-</button>
 
 <h4>현재 캐릭터</h4>
 <div id="characterList"></div>
+
+</div>
+
 </div>
 
 <!-- 공략 -->
 <div class="card">
-<h3>공략 추가</h3>
+
+<h3>
+⚔ 공격 공략 관리
+</h3>
+
+
+<h4 onclick="toggleBox('guideAddBox')" style="cursor:pointer;">
+➕ 공략 추가 ▼
+</h4>
+
+
+<div id="guideAddBox" style="display:none;">
 
 <div style="position:relative;">
 
@@ -396,19 +402,55 @@ display:none;
 
 <button id="guideBtn" onclick="addGuide()">공략 저장</button>
 
+</div>
 
+
+<!-- 상대 검색 -->
+<div class="card">
+
+<h3>
+🔍 상대 검색
+</h3>
+
+<input 
+id="enemySearch"
+placeholder="상대 이름 입력"
+autocomplete="off"
+oninput="searchGuide(this)">
+
+<div id="enemySearchResult"></div>
+
+</div>
 
 <div class="card">
-<h3>공략 목록</h3>
+
+<h3 onclick="toggleBox('guideListBox')" style="cursor:pointer;">
+📋 전체 공략 목록 ▼
+</h3>
+
+<div id="guideListBox" style="display:none;">
+
 <div id="guideList"></div>
-<div class="card">
-<h3>방어덱 목록</h3>
-<div id="defenseList"></div>
+
 </div>
+
+</div>
+
 </div>
 <div class="card">
 
-<h3>방어덱 추가</h3>
+<h2>
+🛡 방어덱 관리
+</h2>
+
+<hr>
+
+<h4 onclick="toggleBox('defAddBox')" style="cursor:pointer;">
+➕ 방어덱 추가 ▼
+</h4>
+
+
+<div id="defAddBox" style="display:none;">
 
 <div style="position:relative;">
 
@@ -517,6 +559,55 @@ placeholder="뒷줄 (예: 여포 / 브브)">
 </button>
 
 </div>
+
+</div>
+
+<div class="card">
+
+<h4 onclick="toggleBox('defenseListBox')" style="cursor:pointer;">
+📋 등록된 방어덱 ▼
+</h4>
+<div id="defenseListBox" style="display:none;">
+<div id="defenseList"></div>
+</div>
+
+</div>
+
+
+</div>
+
+
+<div class="card">
+
+<h4 onclick="toggleBox('advancedBox')" style="cursor:pointer;">
+⚙ 고급 관리 도구 ▼
+</h4>
+
+<div id="advancedBox" style="display:none;">
+
+<button onclick="convertOldGuides()">
+기존 공략 변환
+</button>
+
+<button onclick="fixMissingHeroIds()">
+빈 캐릭터ID 수정
+</button>
+
+<button onclick="convertOldEnemies()">
+기존 상대 변환
+</button>
+
+<button onclick="fixMissingEnemyIds()">
+빈 상대ID 수정
+</button>
+
+</div>
+
+</div>
+
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 
 
 <!-- Firebase -->
@@ -1024,10 +1115,11 @@ style="flex:1;">
 
         itemHtml += `
         <div style="
-            background:#343d52;
+            background:#f1f3f5;
             padding:12px;
             border-radius:10px;
             margin-bottom:15px;
+            border:1px solid #ddd;
         ">
 
             <b>${hero}</b>
@@ -1385,6 +1477,14 @@ async function editGuide(id){
 
     const g = doc.data();
 
+
+    // 수정 버튼 클릭 시 공략 추가창 자동 열기
+    const guideBox = document.getElementById("guideAddBox");
+
+    if(guideBox){
+        guideBox.style.display = "block";
+    }
+
     editingGuideId = id;
 
 
@@ -1572,6 +1672,13 @@ async function deleteGuide(id){
 }
 
 async function editDefense(id){
+
+    const defBox = document.getElementById("defAddBox");
+
+    if(defBox.style.display === "none"){
+        defBox.style.display = "block";
+    }
+
 
     const doc = await db.collection("defenses").doc(id).get();
 
@@ -1979,7 +2086,7 @@ function generateDefenseInputs(){
         itemHtml += `
 
         <div style="
-        background:#343d52;
+        background:#f1f3f5;
         padding:12px;
         border-radius:10px;
         margin-bottom:15px;
@@ -2031,6 +2138,132 @@ async function start(){
 }
 
 start();
+
+function toggleBox(id){
+
+    const box = document.getElementById(id);
+
+    if(box.style.display === "none"){
+        box.style.display = "block";
+    }else{
+        box.style.display = "none";
+    }
+
+}
+
+async function searchGuide(input){
+
+    const keyword = input.value.trim();
+
+    const resultBox =
+        document.getElementById("enemySearchResult");
+
+
+    if(keyword===""){
+
+        resultBox.innerHTML="";
+        return;
+
+    }
+
+
+    const keywords =
+        keyword.split(" ")
+        .filter(v=>v);
+
+
+    const snap =
+        await db.collection("guides").get();
+
+
+    let html="";
+
+
+    snap.forEach(doc=>{
+
+
+        const g = doc.data();
+
+
+        let enemies=[];
+
+
+        if(Array.isArray(g.enemy)){
+
+            enemies = g.enemy.map(e=>{
+
+                if(typeof e==="string"){
+                    return e;
+                }
+
+                return e.name || "";
+
+            });
+
+        }
+
+
+        const match =
+            keywords.every(k =>
+                enemies.some(e =>
+                    e.includes(k)
+                )
+            );
+
+
+        if(match){
+
+
+            const heroes =
+                (g.heroes || [])
+                .map(h=>h.name)
+                .join(" / ");
+
+
+            html += `
+
+            <div style="
+            background:white;
+            padding:12px;
+            border-radius:10px;
+            margin-top:10px;
+            border:1px solid #ddd;
+            ">
+
+            <b>${heroes}</b>
+
+            <br>
+
+            상대 :
+            ${enemies.join(" / ")}
+
+
+            <br><br>
+
+            <button onclick="editGuide('${doc.id}')">
+            수정
+            </button>
+
+
+            <button onclick="deleteGuide('${doc.id}')">
+            삭제
+            </button>
+
+
+            </div>
+
+            `;
+
+        }
+
+
+    });
+
+
+    resultBox.innerHTML =
+        html || "검색 결과 없음";
+
+}
 
 console.log("관리자 페이지 정상 실행");
 </script>
