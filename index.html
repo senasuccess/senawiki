@@ -164,44 +164,7 @@ button:hover{
 
 <script>
 
-const ACCESS_CODE = "1234";
 
-function login(){
-
-    const code =
-    document.getElementById("code").value;
-
-    if(code === ACCESS_CODE){
-
-        document.getElementById(
-            "loginPage"
-        ).style.display = "none";
-
-        document.getElementById(
-            "menuPage"
-        ).style.display = "block";
-
-    }else{
-
-        alert("코드가 틀렸습니다.");
-
-    }
-
-}
-
-function adminLogin(){
-
-    const pw = prompt("관리자 비밀번호");
-
-    if(pw === "1234"){
-        location.href = "admin.html";
-    }else if(pw !== null){
-        alert("비밀번호가 틀렸습니다.");
-    }
-
-}
-
-</script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
@@ -218,6 +181,8 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 </script>
+
+<script src="app.min.js"></script>
 
 <script>
 if ("serviceWorker" in navigator) {

@@ -37,9 +37,13 @@ h1{
 }
 
 .character-grid{
+
     display:grid;
-    grid-template-columns:repeat(3,1fr);
+
+    grid-template-columns:repeat(5,1fr);
+
     gap:15px;
+
 }
 
 .search-box{
@@ -55,11 +59,7 @@ h1{
     outline:none;
 }
 
-.character-grid{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:15px;
-}
+
 
 .character-card{
     background:#343d52;
@@ -82,7 +82,33 @@ h1{
     border:1px solid #4f7cff;
 }
 
+.list-toggle{
 
+    width:100%;
+
+    background:#343d52;
+
+    color:white;
+
+    border:none;
+
+    border-radius:10px;
+
+    padding:10px;
+
+    margin-bottom:15px;
+
+    cursor:pointer;
+
+    font-size:15px;
+
+}
+
+.list-toggle:hover{
+
+    background:#404a61;
+
+}
 
 .selected-card{
     display:flex;
@@ -200,6 +226,15 @@ class="search-box"
 type="text"
 placeholder="🔍 캐릭터 검색...">
 
+<button
+id="toggleBtn"
+class="list-toggle"
+onclick="toggleCharacterList()">
+
+🎮 캐릭터 선택
+
+</button>
+
 <div
 class="characters"
 id="characterList">
@@ -231,6 +266,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 let characters = [];
+let characterMap = [];
 let guides = [];
 let selected = [];
 
@@ -239,11 +275,28 @@ let selected = [];
 ========================= */
 
 function loadCharacters(){
+
     db.collection("characters")
     .onSnapshot(snap=>{
-        characters = snap.docs.map(d=>d.data().name);
+
+        characterMap = snap.docs.map(d=>{
+
+    return {
+        id:d.id,
+        name:d.data().name
+    };
+
+});
+
+
+characters = characterMap
+    .map(c=>c.name)
+    .sort((a,b)=>a.localeCompare(b,"ko"));
+
         renderCharacters();
+
     });
+
 }
 
 function loadGuides(){
@@ -264,13 +317,19 @@ function loadGuides(){
 
 let searchKeyword = "";
 
+let listOpened = true;
+
 function renderCharacters(){
 
     const box = document.getElementById("characterList");
 
     let html = '<div class="character-grid">';
 
-    characters.forEach(name=>{
+    characters
+    .filter(name =>
+        name.includes(document.getElementById("heroSearch").value)
+    )
+    .forEach(name=>{
 
         html += `
         <div
@@ -288,6 +347,37 @@ function renderCharacters(){
     html += "</div>";
 
     box.innerHTML = html;
+
+    box.style.display = listOpened ? "block" : "none";
+
+}
+
+function toggleCharacterList(){
+
+    listOpened = !listOpened;
+
+    const box = document.getElementById("characterList");
+    const btn = document.getElementById("toggleBtn");
+    const search = document.getElementById("heroSearch");
+
+    if(listOpened){
+
+        // 검색 초기화
+        search.value="";
+
+        renderCharacters();
+
+        box.style.display="block";
+
+        btn.innerHTML="▲ 캐릭터 숨기기";
+
+    }else{
+
+        box.style.display="none";
+
+        btn.innerHTML="🎮 캐릭터 선택";
+
+    }
 
 }
 
@@ -316,13 +406,18 @@ function selectChar(name){
         }
     },200);
 
-    document.getElementById("heroSearch").value = "";
+    // 검색창 초기화
+document.getElementById("heroSearch").value = "";
 
-document.querySelectorAll(".character-card").forEach(card=>{
+// 목록 자동 접기
+listOpened = false;
 
-    card.style.display="flex";
+// 버튼 변경
+document.getElementById("toggleBtn").innerHTML =
+"🎮 캐릭터 선택";
 
-});
+// 다시 그리기
+renderCharacters();
 }
 
 function removeChar(name){
@@ -402,22 +497,35 @@ function showGuide(g){
 
     if(typeof g.ring === "object" && g.ring){
 
-        ringText = `
-        <table class="info-table">
-        ${Object.entries(g.ring).map(([hero,ring])=>`
+    ringText = `
+    <table class="info-table">
+    ${
+        (g.heroes || []).map(heroInfo=>{
+
+    const hero = heroInfo.id;
+    const ring = g.ring[hero];
+
+            const findName =
+characterMap.find(c=>c.id===hero)?.name
+|| hero;
+
+            return `
             <tr>
-                <td>${hero}</td>
+                <td>${findName}</td>
                 <td colspan="2">${ring}</td>
             </tr>
-        `).join("")}
-        </table>
-        `;
+            `;
 
-    }else{
-
-        ringText = g.ring || "-";
-
+        }).join("")
     }
+    </table>
+    `;
+
+}else{
+
+    ringText = g.ring || "-";
+
+}
 
     // 장비
 let itemText = "-";
@@ -426,13 +534,26 @@ if(typeof g.items === "object" && g.items){
 
     itemText = `
     <table class="info-table">
-    ${Object.entries(g.items).map(([hero,data])=>`
-        <tr>
-            <td>${hero}</td>
-            <td>${(data.set || "").replaceAll(",", " / ")}</td>
-            <td>${(data.option || "").replaceAll(",", " / ")}</td>
-        </tr>
-    `).join("")}
+    ${
+        (g.heroes || []).map(heroInfo=>{
+
+    const hero = heroInfo.id;
+    const data = g.items[hero];
+
+            const findName =
+characterMap.find(c=>c.id===hero)?.name
+|| hero;
+
+            return `
+            <tr>
+                <td>${findName}</td>
+                <td>${(data.set || "").replaceAll(",", " / ")}</td>
+                <td>${(data.option || "").replaceAll(",", " / ")}</td>
+            </tr>
+            `;
+
+        }).join("")
+    }
     </table>
     `;
 
@@ -566,6 +687,18 @@ document.addEventListener("DOMContentLoaded",()=>{
     });
 
 });
+
+document.getElementById("heroSearch").addEventListener("input",()=>{
+
+    listOpened = true;
+
+    document.getElementById("toggleBtn").innerHTML =
+    "▲ 캐릭터 목록 접기";
+
+    renderCharacters();
+
+});
+
 
 loadGuides();
 

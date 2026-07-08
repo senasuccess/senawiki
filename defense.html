@@ -152,6 +152,25 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+let charactersData = [];
+
+
+async function loadCharacters(){
+
+    const snap = await db.collection("characters").get();
+
+    charactersData = snap.docs.map(doc=>{
+
+        return {
+            id: doc.id,
+            name: doc.data().name
+        };
+
+    });
+
+}
+
+
 function showList(){
     document.getElementById("listPage").style.display="block";
     document.getElementById("detailPage").style.display="none";
@@ -178,26 +197,35 @@ function showDetail(id){
     if(!d) return;
 
     // 반지
-    let ringText="-";
+let ringText="-";
 
-    if(typeof d.ring==="object"){
+if(typeof d.ring==="object"){
 
-        ringText=`
-        <table class="info-table">
-        ${Object.entries(d.ring).map(([hero,ring])=>`
-        <tr>
-        <td>${hero}</td>
-        <td>${ring}</td>
-        </tr>
-        `).join("")}
-        </table>
-        `;
+    ringText=`
+    <table class="info-table">
+    ${
+        (d.heroes || []).map(heroInfo=>{
 
-    }else{
+            const hero = heroInfo.id;
+            const ring = d.ring[hero];
 
-        ringText=d.ring||"-";
+            return `
+            <tr>
+                <td>${heroInfo.name}</td>
+                <td>${ring || "-"}</td>
+            </tr>
+            `;
 
+        }).join("")
     }
+    </table>
+    `;
+
+}else{
+
+    ringText=d.ring || "-";
+
+}
 
     // 진형
     let formationText="-";
@@ -223,23 +251,40 @@ function showDetail(id){
 
     if(typeof d.items==="object"){
 
-        itemText=`
-        <table class="info-table">
-        ${Object.entries(d.items).map(([hero,data])=>`
-        <tr>
-        <td>${hero}</td>
-        <td>${(data.set||"").replaceAll(","," / ")}</td>
-        <td>${(data.option||"").replaceAll(","," / ")}</td>
-        </tr>
-        `).join("")}
-        </table>
-        `;
+    itemText=`
+    <table class="info-table">
 
-    }else{
+    ${
+        (d.heroes || []).map(heroInfo=>{
 
-        itemText=d.items||"-";
+            const hero = heroInfo.id;
+            const data = d.items[hero];
 
+            return `
+
+            <tr>
+
+            <td>${heroInfo.name}</td>
+
+            <td>${(data?.set || "").replaceAll(","," / ")}</td>
+
+            <td>${(data?.option || "").replaceAll(","," / ")}</td>
+
+            </tr>
+
+            `;
+
+        }).join("")
     }
+
+    </table>
+    `;
+
+}else{
+
+    itemText=d.items||"-";
+
+}
 
     document.getElementById("listPage").style.display="none";
     document.getElementById("detailPage").style.display="block";
@@ -304,20 +349,26 @@ let ringText="-";
 
 if(typeof d.ring==="object"){
 
-ringText=`
-<table class="info-table">
-${Object.entries(d.ring).map(([hero,ring])=>`
-<tr>
-<td>${hero}</td>
-<td>${ring}</td>
-</tr>
-`).join("")}
-</table>
-`;
+    ringText=`
+    <table class="info-table">
+    ${Object.entries(d.ring).map(([hero,ring])=>{
+
+        const c = charactersData.find(x=>x.id === hero);
+
+        return `
+        <tr>
+        <td>${c ? c.name : hero}</td>
+        <td>${ring}</td>
+        </tr>
+        `;
+
+    }).join("")}
+    </table>
+    `;
 
 }else{
 
-ringText=d.ring||"-";
+    ringText=d.ring||"-";
 
 }
 
@@ -350,7 +401,7 @@ ${Object.entries(d.items).map(([hero,data])=>`
 
 <tr>
 
-<td>${hero}</td>
+<td>${charactersData.find(c=>c.id===hero)?.name || hero}</td>
 
 <td>${(data.set||"").replaceAll(","," / ")}</td>
 
@@ -396,7 +447,15 @@ document.getElementById("defenseList").innerHTML=listHtml;
 
 }
 
-loadDefenses();
+async function start(){
+
+    await loadCharacters();
+
+    loadDefenses();
+
+}
+
+start();
 
 </script>
 
